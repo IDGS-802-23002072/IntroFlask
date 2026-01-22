@@ -1,5 +1,5 @@
 # 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -53,6 +53,23 @@ def operas():
 </form>
 
         '''
+@app.route("/operasBas")
+def operas1():
+    return render_template("operasBas.html")
+
+@app.route("/resultado", methods = ["GET", "POST"])
+def resultado():
+    n1 = request.form.get("n1")
+    n2 = request.form.get("n2")
+    opera = request.form.get("opera")
+    if opera == "+":
+        return f"La suma es: {float(n1) + float(n2) }"
+    if opera == "-":
+        return f"La resta es: {float(n1) - float(n2) }"
+    if opera == "*":
+        return f"La multiplicacion es: {float(n1) * float(n2) }"
+    if opera == "/":
+        return f"La division es: {float(n1) / float(n2)}"
 
 if __name__ == "__main__":
     app.run(debug=True) # Para que se actualicen los cambios se pone en true
