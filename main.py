@@ -1,8 +1,14 @@
 #
 from flask import Flask, render_template, request
+from flask import flash #Mandar datos desde la ruta hasta la vista
+from flask_wtf.csrf import CSRFProtect # Proteccion contra la usurpacion de identidad
+
+import forms
+
 
 app = Flask(__name__)
-
+app.secret_key='Clave secreta'
+csrf = CSRFProtect()
 
 @app.route("/")
 def index():
@@ -11,9 +17,36 @@ def index():
     return render_template("index.html", titulo=titulo, lista=lista)
 
 
-@app.route("/formulario")
-def form():  # El nombre que quieras
-    return render_template("formularios.html")
+@app.route("/usuarios", methods=['GET','POST'])
+def usuarios(): 
+    mat=0
+    nom=''
+    apa=''
+    ama=''
+    email=''
+    usuarios_class= forms.UserForm(request.form) # Se vincula la clase con la vista
+    if request.method == 'POST' and usuarios_class.validate():
+        mat=usuarios_class.matricula.data
+        nom = usuarios_class.nombre.data
+        apa = usuarios_class.aPaterno.data
+        ama = usuarios_class.aMaterno.data
+        email = usuarios_class.correo.data
+        
+        mensaje = "Bienvenido {}".format(nom)
+        flash(mensaje)
+        
+    return render_template("usuarios.html", 
+                           form=usuarios_class, # Asi se pasan los objetos / clases
+                           mat = mat,
+                           nom=nom,
+                           apa=apa,
+                           ama=ama,
+                           email=email
+                           )
+
+# @app.route("/usuarios")
+# def form():  # El nombre que quieras
+#     return render_template("formularios.html")
 
 
 @app.route("/reportes")
@@ -77,6 +110,32 @@ def operas1():
         res = float(n1)+float(n2)
     return render_template("operasBas.html",n1=n1,n2=n2,res=res)
 
+@app.route("/cinepolis", methods=["GET","POST"])
+def cinepolis():
+    nom=""
+    cantiCom = 0
+    isCineco=""
+    cantiBol=0
+    Total =0
+    alert = ""
+    if request.method == "POST":
+        nom = request.form.get("Nombre")
+        cantiCom = int(request.form.get("CantidadCompradores"),0)
+        isCineco = request.form.get("isCineco")
+        cantiBol = int(request.form.get("CantidadBoletos"),0)
+        limit = cantiCom * 7
+        if cantiBol <= limit:
+            Total = cantiBol*12
+            if cantiBol == 3 or cantiBol == 4 or cantiBol == 5:
+                Total *= 0.90
+            if cantiBol > 5:
+                Total *= 0.85
+            if isCineco == "si":
+                Total *= 0.90
+        else:
+            alert = "Solo se permiten 7 boletos por comprador. La cantidad ingresada es incorrecta."
+    return render_template("cinepolis.html",nom = nom, cantiCom= cantiCom,isCineco=isCineco,cantiBol=cantiBol, Total=Total,alert=alert)
+
 @app.route("/alumnos")
 def alumnos():
         return render_template("alumnos.html")
@@ -112,4 +171,5 @@ def resultado():
 
 
 if __name__ == "__main__":
+    csrf.init_app(app) # Valida a cada una de las aplicaciones que hay aqui
     app.run(debug=True)  # Para que se actualicen los cambios se pone en true
