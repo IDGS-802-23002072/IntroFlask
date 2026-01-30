@@ -118,11 +118,12 @@ def cinepolis():
     cantiBol=0
     Total =0
     alert = ""
-    if request.method == "POST":
-        nom = request.form.get("Nombre")
-        cantiCom = int(request.form.get("CantidadCompradores"),0)
-        isCineco = request.form.get("isCineco")
-        cantiBol = int(request.form.get("CantidadBoletos"),0)
+    cinepolis_class = forms.CinepolisForm(request.form)
+    if request.method == "POST" and cinepolis_class.validate():
+        nom = cinepolis_class.nombre.data
+        cantiCom = cinepolis_class.compradores.data
+        isCineco = cinepolis_class.cineco.data
+        cantiBol = cinepolis_class.boletos.data
         limit = cantiCom * 7
         if cantiBol <= limit:
             Total = cantiBol*12
@@ -133,8 +134,10 @@ def cinepolis():
             if isCineco == "si":
                 Total *= 0.90
         else:
+            Total = 0
             alert = "Solo se permiten 7 boletos por comprador. La cantidad ingresada es incorrecta."
-    return render_template("cinepolis.html",nom = nom, cantiCom= cantiCom,isCineco=isCineco,cantiBol=cantiBol, Total=Total,alert=alert)
+            flash(alert)
+    return render_template("cinepolis.html",form=cinepolis_class ,nom = nom, cantiCom= cantiCom,isCineco=isCineco,cantiBol=cantiBol, Total=Total)
 
 @app.route("/alumnos")
 def alumnos():
